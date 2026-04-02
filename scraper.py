@@ -21,21 +21,37 @@ BAD_DOMAINS = [
     "stackoverflow.com",
     "mozilla.org",
     "microsoft.com",
-    "espn.com"
+    "espn.com",
+    "hearst.com",
+    "countryliving.com",
+    "foxnews.com",
+    "foxweather.com"
+]
+
+GOOD_HINTS = [
+    "glass beads",
+    "glass bead",
+    "reflective",
+    "road marking",
+    "traffic safety",
+    "thermoplastic",
+    "abrasive",
+    "blasting",
+    "microsphere",
+    "highway",
+    "marking paint"
 ]
 
 
 def get_domain(url):
     parsed = urllib.parse.urlparse(url)
-    domain = parsed.scheme + "://" + parsed.netloc
-    return domain
+    return parsed.scheme + "://" + parsed.netloc
 
 
 def decode_bing_url(encoded_url):
     try:
         if encoded_url.startswith("aHR0"):
-            decoded = base64.b64decode(encoded_url).decode("utf-8")
-            return decoded
+            return base64.b64decode(encoded_url).decode("utf-8")
     except:
         pass
     return None
@@ -65,6 +81,25 @@ def is_bad_website(url):
     for bad in BAD_DOMAINS:
         if bad in url_lower:
             return True
+
+    return False
+
+
+def homepage_looks_relevant(domain):
+    try:
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(domain, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.text, "html.parser")
+        text = soup.get_text(" ", strip=True).lower()
+        html = response.text.lower()
+
+        combined = text + " " + html
+
+        for hint in GOOD_HINTS:
+            if hint in combined:
+                return True
+    except:
+        pass
 
     return False
 
@@ -108,6 +143,7 @@ def search_company_websites(keyword):
     except Exception as e:
         print("Search error:", e)
 
+    # 域名去重
     clean_sites = []
     seen = set()
     for site in websites:
@@ -115,9 +151,16 @@ def search_company_websites(keyword):
             seen.add(site)
             clean_sites.append(site)
 
-    clean_sites = clean_sites[:6]
-    print("Company domains found:", clean_sites)
-    return clean_sites
+    # 只保留看起来像行业相关的公司网站
+    relevant_sites = []
+    for site in clean_sites:
+        print("Checking relevance:", site)
+        if homepage_looks_relevant(site):
+            relevant_sites.append(site)
+
+    relevant_sites = relevant_sites[:6]
+    print("Relevant company domains:", relevant_sites)
+    return relevant_sites
 
 
 def get_emails_from_page(url):
@@ -190,16 +233,12 @@ def save_results_to_csv(results, filename="leads.csv"):
 
 if __name__ == "__main__":
     keywords = [
+        "glass beads importer",
+        "reflective material distributor",
         "road marking contractor company",
         "traffic safety company",
-        "reflective material distributor",
         "road marking paint supplier",
-        "airport marking contractor",
-        "thermoplastic road marking company",
-        "highway maintenance company",
-        "abrasive blasting company",
-        "industrial coating company",
-        "glass beads importer"
+        "thermoplastic road marking company"
     ]
 
     all_results = []
