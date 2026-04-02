@@ -183,11 +183,16 @@ def save_results_to_csv(results, filename="leads.csv"):
 
 if __name__ == "__main__":
     keywords = [
-        "glass beads manufacturer",
-        "glass beads supplier",
-        "road marking glass beads",
-        "reflective glass beads",
-        "glass microspheres supplier"
+        "road marking contractor company",
+        "traffic safety company",
+        "reflective material distributor",
+        "road marking paint supplier",
+        "airport marking contractor",
+        "thermoplastic road marking company",
+        "highway maintenance company",
+        "abrasive blasting company",
+        "industrial coating company",
+        "glass beads importer"
     ]
 
     all_results = []
