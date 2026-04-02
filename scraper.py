@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import re
 import urllib.parse
 import base64
+import csv
 
 
 def decode_bing_url(encoded_url):
@@ -42,6 +43,9 @@ def search_company_websites(keyword):
 
         for a in soup.select("li.b_algo h2 a"):
             href = a.get("href")
+            if not href:
+                continue
+
             if "bing.com/ck/a" in href:
                 real_url = extract_real_url(href)
                 if real_url:
@@ -100,20 +104,59 @@ def get_contact_pages(base_url):
     return list(set(pages))
 
 
+def save_results_to_csv(results, filename="leads.csv"):
+    with open(filename, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["website", "email", "contact_page"])
+
+        for row in results:
+            writer.writerow([row["website"], row["email"], row["contact_page"]])
+
+    print(f"\nSaved results to {filename}")
+
+
 if __name__ == "__main__":
     keyword = "glass beads manufacturer"
 
     websites = search_company_websites(keyword)
+    all_results = []
 
     for site in websites:
         print("\nChecking website:", site)
 
+        # 先查首页
         emails = get_emails_from_page(site)
+        for email in emails:
+            all_results.append({
+                "website": site,
+                "email": email,
+                "contact_page": site
+            })
 
+        # 再查 contact/about 页面
         contact_pages = get_contact_pages(site)
         for page in contact_pages:
             print("Checking contact page:", page)
-            emails += get_emails_from_page(page)
+            page_emails = get_emails_from_page(page)
 
-        emails = list(set(emails))
-        print("Emails found:", emails)
+            for email in page_emails:
+                all_results.append({
+                    "website": site,
+                    "email": email,
+                    "contact_page": page
+                })
+
+    # 去重
+    unique_results = []
+    seen = set()
+    for row in all_results:
+        key = (row["website"], row["email"], row["contact_page"])
+        if key not in seen:
+            seen.add(key)
+            unique_results.append(row)
+
+    print("\nFinal results:")
+    for row in unique_results:
+        print(row)
+
+    save_results_to_csv(unique_results)
