@@ -15,23 +15,9 @@ BAD_DOMAINS = [
     "linkedin.com",
     "twitter.com",
     "x.com",
-    "foxnews.com",
-    "foxweather.com",
-    "support.google.com",
     "wikipedia.org",
     "amazon.com",
     "ebay.com"
-]
-
-GOOD_HINTS = [
-    "glass",
-    "beads",
-    "microsphere",
-    "reflective",
-    "road",
-    "marking",
-    "abrasive",
-    "traffic"
 ]
 
 
@@ -60,18 +46,14 @@ def extract_real_url(bing_url):
     return None
 
 
-def is_good_website(url):
+def is_bad_website(url):
     url_lower = url.lower()
 
     if url_lower.endswith(".pdf"):
-        return False
+        return True
 
     for bad in BAD_DOMAINS:
         if bad in url_lower:
-            return False
-
-    for good in GOOD_HINTS:
-        if good in url_lower:
             return True
 
     return False
@@ -109,7 +91,7 @@ def search_company_websites(keyword):
             elif href.startswith("http"):
                 real_url = href
 
-            if real_url and is_good_website(real_url):
+            if real_url and not is_bad_website(real_url):
                 websites.append(real_url)
 
     except Exception as e:
@@ -122,8 +104,8 @@ def search_company_websites(keyword):
             seen.add(site)
             clean_sites.append(site)
 
-    clean_sites = clean_sites[:10]
-    print("Filtered websites found:", clean_sites)
+    clean_sites = clean_sites[:8]
+    print("Websites found:", clean_sites)
     return clean_sites
 
 
