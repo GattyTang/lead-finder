@@ -17,8 +17,18 @@ BAD_DOMAINS = [
     "x.com",
     "wikipedia.org",
     "amazon.com",
-    "ebay.com"
+    "ebay.com",
+    "stackoverflow.com",
+    "mozilla.org",
+    "microsoft.com",
+    "espn.com"
 ]
+
+
+def get_domain(url):
+    parsed = urllib.parse.urlparse(url)
+    domain = parsed.scheme + "://" + parsed.netloc
+    return domain
 
 
 def decode_bing_url(encoded_url):
@@ -92,7 +102,8 @@ def search_company_websites(keyword):
                 real_url = href
 
             if real_url and not is_bad_website(real_url):
-                websites.append(real_url)
+                domain = get_domain(real_url)
+                websites.append(domain)
 
     except Exception as e:
         print("Search error:", e)
@@ -104,8 +115,8 @@ def search_company_websites(keyword):
             seen.add(site)
             clean_sites.append(site)
 
-    clean_sites = clean_sites[:8]
-    print("Websites found:", clean_sites)
+    clean_sites = clean_sites[:6]
+    print("Company domains found:", clean_sites)
     return clean_sites
 
 
@@ -129,10 +140,6 @@ def get_emails_from_page(url):
             href = link["href"]
             if "mailto:" in href:
                 emails.append(href)
-
-        text_fixed = text.replace(" [at] ", "@").replace("(at)", "@").replace(" at ", "@")
-        text_fixed = text_fixed.replace(" [dot] ", ".").replace("(dot)", ".").replace(" dot ", ".")
-        emails += re.findall(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}", text_fixed)
 
     except:
         pass
