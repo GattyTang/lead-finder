@@ -148,6 +148,46 @@ def search_company_websites(keyword):
             seen.add(site)
             clean_sites.append(site)
 
+    # 不再做相关性过滤，直接取前几个网站
+    relevant_sites = clean_sites[:6]
+
+    print("Relevant company domains:", relevant_sites)
+    return relevant_sites
+    print(f"\nSearching Bing for: {keyword}")
+
+    websites = []
+    try:
+        headers = {"User-Agent": "Mozilla/5.0"}
+        url = "https://www.bing.com/search?q=" + urllib.parse.quote(keyword)
+        response = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        for a in soup.select("li.b_algo h2 a"):
+            href = a.get("href")
+            if not href:
+                continue
+
+            real_url = None
+
+            if "bing.com/ck/a" in href:
+                real_url = extract_real_url(href)
+            elif href.startswith("http"):
+                real_url = href
+
+            if real_url and not is_bad_website(real_url):
+                domain = get_domain(real_url)
+                websites.append(domain)
+
+    except Exception as e:
+        print("Search error:", e)
+
+    clean_sites = []
+    seen = set()
+    for site in websites:
+        if site not in seen:
+            seen.add(site)
+            clean_sites.append(site)
+
     relevant_sites = []
     relevant_sites = clean_sites[:6]
 print("Relevant company domains:", relevant_sites)
