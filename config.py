@@ -12,7 +12,7 @@ KEYWORDS = [
 ]
 
 # 是否自动发邮件
-AUTO_SEND_EMAILS = True
+AUTO_SEND_EMAILS = False
 
 # 发件邮箱配置
 SMTP_SERVER = "smtp.126.com"
