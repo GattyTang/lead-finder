@@ -149,10 +149,9 @@ def search_company_websites(keyword):
             clean_sites.append(site)
 
     relevant_sites = []
-    for site in clean_sites:
-        print("Checking relevance:", site)
-        if homepage_looks_relevant(site):
-            relevant_sites.append(site)
+    relevant_sites = clean_sites[:6]
+print("Relevant company domains:", relevant_sites)
+return relevant_sites
 
     relevant_sites = relevant_sites[:6]
     print("Relevant company domains:", relevant_sites)
