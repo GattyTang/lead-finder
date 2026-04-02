@@ -2,16 +2,29 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import urllib.parse
+import base64
+
+
+def decode_bing_url(encoded_url):
+    try:
+        if encoded_url.startswith("aHR0"):
+            decoded = base64.b64decode(encoded_url).decode("utf-8")
+            return decoded
+    except:
+        pass
+    return None
 
 
 def extract_real_url(bing_url):
     try:
         parsed = urllib.parse.parse_qs(urllib.parse.urlparse(bing_url).query)
         if "u" in parsed:
-            real_url = parsed["u"][0]
-            if real_url.startswith("a1"):
-                real_url = real_url[2:]
-            return urllib.parse.unquote(real_url)
+            encoded = parsed["u"][0]
+            if encoded.startswith("a1"):
+                encoded = encoded[2:]
+            real = decode_bing_url(encoded)
+            if real:
+                return real
     except:
         pass
     return None
@@ -25,7 +38,6 @@ def search_company_websites(keyword):
         headers = {"User-Agent": "Mozilla/5.0"}
         url = "https://www.bing.com/search?q=" + keyword
         response = requests.get(url, headers=headers, timeout=10)
-
         soup = BeautifulSoup(response.text, "html.parser")
 
         for a in soup.select("li.b_algo h2 a"):
