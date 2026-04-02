@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import re
 
 
-def get_emails_from_website(url):
+def get_emails_from_page(url):
     emails = []
     try:
         response = requests.get(url, timeout=5)
@@ -25,13 +25,31 @@ def get_emails_from_website(url):
     except:
         pass
 
-    return list(set(emails))
+    return emails
+
+
+def get_contact_pages(base_url):
+    pages = []
+    try:
+        response = requests.get(base_url, timeout=5)
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        for link in soup.find_all("a", href=True):
+            href = link["href"].lower()
+            if "contact" in href or "about" in href:
+                if href.startswith("http"):
+                    pages.append(href)
+                else:
+                    pages.append(base_url.rstrip("/") + "/" + href.lstrip("/"))
+    except:
+        pass
+
+    return list(set(pages))
 
 
 def search_company_websites(keyword):
     print("Searching companies for:", keyword)
 
-    # 模拟一些公司网站（后面我们再做真正搜索）
     websites = [
         "https://www.3m.com",
         "https://www.swarco.com",
@@ -47,6 +65,16 @@ if __name__ == "__main__":
     websites = search_company_websites(keyword)
 
     for site in websites:
-        print("Checking:", site)
-        emails = get_emails_from_website(site)
+        print("\nChecking website:", site)
+
+        # 首页邮箱
+        emails = get_emails_from_page(site)
+
+        # Contact页面邮箱
+        contact_pages = get_contact_pages(site)
+        for page in contact_pages:
+            print("Checking contact page:", page)
+            emails += get_emails_from_page(page)
+
+        emails = list(set(emails))
         print("Emails found:", emails)
