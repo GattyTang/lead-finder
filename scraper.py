@@ -63,26 +63,27 @@ def clean_email(email):
     return email
 
 
+# 使用 DuckDuckGo 搜索公司网站
 def search_company_websites(keyword):
-    print(f"\nSearching Bing for: {keyword}")
+    print(f"\nSearching DuckDuckGo for: {keyword}")
 
     websites = []
     headers = {"User-Agent": "Mozilla/5.0"}
-    url = "https://www.bing.com/search?q=" + urllib.parse.quote(keyword)
+    url = "https://duckduckgo.com/html/?q=" + urllib.parse.quote(keyword)
 
-    response = requests.get(url, headers=headers, timeout=10)
-    soup = BeautifulSoup(response.text, "html.parser")
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.text, "html.parser")
 
-    results = soup.find_all("li", {"class": "b_algo"})
+        results = soup.find_all("a", {"class": "result__a"})
 
-    for result in results:
-        a = result.find("a")
-        if not a:
-            continue
+        for result in results:
+            href = result.get("href")
+            if href and href.startswith("http") and not is_bad_website(href):
+                websites.append(get_domain(href))
 
-        href = a.get("href")
-        if href and href.startswith("http") and not is_bad_website(href):
-            websites.append(get_domain(href))
+    except:
+        pass
 
     clean_sites = []
     seen = set()
