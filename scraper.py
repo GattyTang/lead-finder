@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 import re
 import urllib.parse
 import base64
-import csv
 
 
 BAD_DOMAINS = [
@@ -115,7 +114,7 @@ def clean_email(email):
 
 
 def search_company_websites(keyword):
-    print("\nSearching Bing for:", keyword)
+    print(f"\nSearching Bing for: {keyword}")
 
     websites = []
     try:
@@ -143,7 +142,6 @@ def search_company_websites(keyword):
     except Exception as e:
         print("Search error:", e)
 
-    # 域名去重
     clean_sites = []
     seen = set()
     for site in websites:
@@ -151,7 +149,6 @@ def search_company_websites(keyword):
             seen.add(site)
             clean_sites.append(site)
 
-    # 只保留看起来像行业相关的公司网站
     relevant_sites = []
     for site in clean_sites:
         print("Checking relevance:", site)
@@ -220,27 +217,7 @@ def get_contact_pages(base_url):
     return list(set(pages))
 
 
-def save_results_to_csv(results, filename="leads.csv"):
-    with open(filename, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["website", "email", "contact_page"])
-
-        for row in results:
-            writer.writerow([row["website"], row["email"], row["contact_page"]])
-
-    print(f"\nSaved results to {filename}")
-
-
-if __name__ == "__main__":
-    keywords = [
-        "glass beads importer",
-        "reflective material distributor",
-        "road marking contractor company",
-        "traffic safety company",
-        "road marking paint supplier",
-        "thermoplastic road marking company"
-    ]
-
+def collect_leads(keywords):
     all_results = []
 
     for keyword in keywords:
@@ -249,9 +226,10 @@ if __name__ == "__main__":
         for site in websites:
             print("\nChecking website:", site)
 
-            emails = get_emails_from_page(site)
-            for email in emails:
+            homepage_emails = get_emails_from_page(site)
+            for email in homepage_emails:
                 all_results.append({
+                    "keyword": keyword,
                     "website": site,
                     "email": email,
                     "contact_page": site
@@ -264,6 +242,7 @@ if __name__ == "__main__":
 
                 for email in page_emails:
                     all_results.append({
+                        "keyword": keyword,
                         "website": site,
                         "email": email,
                         "contact_page": page
@@ -272,7 +251,7 @@ if __name__ == "__main__":
     unique_results = []
     seen = set()
     for row in all_results:
-        key = (row["website"], row["email"], row["contact_page"])
+        key = (row["keyword"], row["website"], row["email"], row["contact_page"])
         if key not in seen:
             seen.add(key)
             unique_results.append(row)
@@ -281,4 +260,4 @@ if __name__ == "__main__":
     for row in unique_results:
         print(row)
 
-    save_results_to_csv(unique_results)
+    return unique_results
