@@ -77,6 +77,40 @@ def clean_email(email):
     email = email.replace(" ", "")
     email = email.replace("(at)", "@").replace("[at]", "@").replace(" at ", "@")
     email = email.replace("(dot)", ".").replace("[dot]", ".").replace(" dot ", ".")
+
+    email_lower = email.lower()
+
+    # 过滤图片、资源文件名伪装成邮箱的情况
+    bad_endings = [
+        ".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg", ".avif",
+        ".css", ".js", ".ico", ".woff", ".woff2", ".ttf", ".eot",
+        ".pdf", ".mp4", ".mp3"
+    ]
+
+    for ending in bad_endings:
+        if email_lower.endswith(ending):
+            return ""
+
+    # 必须且只能有一个 @
+    if email.count("@") != 1:
+        return ""
+
+    # @ 后面必须有 .
+    parts = email.split("@")
+    if len(parts) != 2:
+        return ""
+
+    local_part, domain_part = parts
+    if not local_part or not domain_part:
+        return ""
+
+    if "." not in domain_part:
+        return ""
+
+    # 长度太短的过滤
+    if len(email) < 6:
+        return ""
+
     return email
 
 
@@ -149,7 +183,7 @@ def get_emails_from_page(url):
     seen = set()
     for email in emails:
         e = clean_email(email)
-        if "@" in e and "." in e and e not in seen:
+        if e and "@" in e and "." in e and e not in seen:
             seen.add(e)
             cleaned.append(e)
 
