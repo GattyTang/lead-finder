@@ -12,20 +12,32 @@ def get_emails_from_page(url):
         text = soup.get_text(" ", strip=True)
         html = response.text
 
-        emails_from_text = re.findall(
+        # 普通邮箱
+        emails += re.findall(
             r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
             text
         )
-        emails_from_html = re.findall(
+        emails += re.findall(
             r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
             html
         )
 
-        emails = list(set(emails_from_text + emails_from_html))
+        # mailto 邮箱
+        for link in soup.find_all("a", href=True):
+            if "mailto:" in link["href"]:
+                emails.append(link["href"].replace("mailto:", "").strip())
+
+        # 处理 [at] / (at) / at 这种写法
+        text_fixed = text.replace(" [at] ", "@").replace("(at)", "@").replace(" at ", "@")
+        emails += re.findall(
+            r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
+            text_fixed
+        )
+
     except:
         pass
 
-    return emails
+    return list(set(emails))
 
 
 def get_contact_pages(base_url):
@@ -70,7 +82,7 @@ if __name__ == "__main__":
         # 首页邮箱
         emails = get_emails_from_page(site)
 
-        # Contact页面邮箱
+        # Contact / About 页面邮箱
         contact_pages = get_contact_pages(site)
         for page in contact_pages:
             print("Checking contact page:", page)
