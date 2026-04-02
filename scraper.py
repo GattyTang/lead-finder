@@ -91,7 +91,6 @@ def homepage_looks_relevant(domain):
         soup = BeautifulSoup(response.text, "html.parser")
         text = soup.get_text(" ", strip=True).lower()
         html = response.text.lower()
-
         combined = text + " " + html
 
         for hint in GOOD_HINTS:
@@ -232,6 +231,8 @@ def collect_leads(keywords):
                     "keyword": keyword,
                     "website": site,
                     "email": email,
+                    "phone": "",
+                    "country": "",
                     "contact_page": site
                 })
 
@@ -245,6 +246,8 @@ def collect_leads(keywords):
                         "keyword": keyword,
                         "website": site,
                         "email": email,
+                        "phone": "",
+                        "country": "",
                         "contact_page": page
                     })
 
