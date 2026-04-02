@@ -6,6 +6,35 @@ import base64
 import csv
 
 
+BAD_DOMAINS = [
+    "bing.com",
+    "google.com",
+    "youtube.com",
+    "facebook.com",
+    "instagram.com",
+    "linkedin.com",
+    "twitter.com",
+    "x.com",
+    "foxnews.com",
+    "foxweather.com",
+    "support.google.com",
+    "wikipedia.org",
+    "amazon.com",
+    "ebay.com"
+]
+
+GOOD_HINTS = [
+    "glass",
+    "beads",
+    "microsphere",
+    "reflective",
+    "road",
+    "marking",
+    "abrasive",
+    "traffic"
+]
+
+
 def decode_bing_url(encoded_url):
     try:
         if encoded_url.startswith("aHR0"):
@@ -31,10 +60,27 @@ def extract_real_url(bing_url):
     return None
 
 
+def is_good_website(url):
+    url_lower = url.lower()
+
+    if url_lower.endswith(".pdf"):
+        return False
+
+    for bad in BAD_DOMAINS:
+        if bad in url_lower:
+            return False
+
+    for good in GOOD_HINTS:
+        if good in url_lower:
+            return True
+
+    return False
+
+
 def clean_email(email):
     email = email.strip()
     email = email.replace("mailto:", "")
-    email = urllib.parse.unquote(email)   # 关键：解码 %69 这种
+    email = urllib.parse.unquote(email)
     email = email.replace(" ", "")
     email = email.replace("(at)", "@").replace("[at]", "@").replace(" at ", "@")
     email = email.replace("(dot)", ".").replace("[dot]", ".").replace(" dot ", ".")
@@ -56,28 +102,28 @@ def search_company_websites(keyword):
             if not href:
                 continue
 
+            real_url = None
+
             if "bing.com/ck/a" in href:
                 real_url = extract_real_url(href)
-                if real_url:
-                    websites.append(real_url)
             elif href.startswith("http"):
-                websites.append(href)
+                real_url = href
+
+            if real_url and is_good_website(real_url):
+                websites.append(real_url)
 
     except Exception as e:
         print("Search error:", e)
 
-    # 去重 + 跳过 pdf
     clean_sites = []
     seen = set()
     for site in websites:
-        if site.lower().endswith(".pdf"):
-            continue
         if site not in seen:
             seen.add(site)
             clean_sites.append(site)
 
-    clean_sites = clean_sites[:5]
-    print("Websites found:", clean_sites)
+    clean_sites = clean_sites[:10]
+    print("Filtered websites found:", clean_sites)
     return clean_sites
 
 
@@ -91,21 +137,17 @@ def get_emails_from_page(url):
         text = soup.get_text(" ", strip=True)
         html = response.text
 
-        # 先把整页内容做一次 URL 解码
         text = urllib.parse.unquote(text)
         html = urllib.parse.unquote(html)
 
-        # 普通邮箱
         emails += re.findall(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}", text)
         emails += re.findall(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}", html)
 
-        # mailto 邮箱
         for link in soup.find_all("a", href=True):
             href = link["href"]
             if "mailto:" in href:
                 emails.append(href)
 
-        # 处理 at / dot 混淆写法
         text_fixed = text.replace(" [at] ", "@").replace("(at)", "@").replace(" at ", "@")
         text_fixed = text_fixed.replace(" [dot] ", ".").replace("(dot)", ".").replace(" dot ", ".")
         emails += re.findall(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}", text_fixed)
@@ -113,7 +155,6 @@ def get_emails_from_page(url):
     except:
         pass
 
-    # 清洗 + 去重
     cleaned = []
     seen = set()
     for email in emails:
@@ -175,7 +216,6 @@ if __name__ == "__main__":
         for site in websites:
             print("\nChecking website:", site)
 
-            # 首页邮箱
             emails = get_emails_from_page(site)
             for email in emails:
                 all_results.append({
@@ -184,7 +224,6 @@ if __name__ == "__main__":
                     "contact_page": site
                 })
 
-            # Contact / About 页面邮箱
             contact_pages = get_contact_pages(site)
             for page in contact_pages:
                 print("Checking contact page:", page)
@@ -197,7 +236,6 @@ if __name__ == "__main__":
                         "contact_page": page
                     })
 
-    # 去重
     unique_results = []
     seen = set()
     for row in all_results:
