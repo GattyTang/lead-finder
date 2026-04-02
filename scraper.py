@@ -2,7 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import urllib.parse
-import base64
 
 
 BAD_DOMAINS = [
@@ -48,13 +47,11 @@ def clean_email(email):
 
     email_lower = email.lower()
 
-    # 过滤图片资源
     bad_endings = [".jpg",".jpeg",".png",".webp",".gif",".svg",".avif",".css",".js",".ico",".pdf",".mp4"]
     for ending in bad_endings:
         if email_lower.endswith(ending):
             return ""
 
-    # 过滤假邮箱
     for bad in BAD_EMAILS:
         if bad in email_lower:
             return ""
@@ -68,21 +65,27 @@ def clean_email(email):
     return email
 
 
+# ⭐⭐⭐ 新搜索解析方式 ⭐⭐⭐
 def search_company_websites(keyword):
     print(f"\nSearching Bing for: {keyword}")
 
     websites = []
     headers = {"User-Agent": "Mozilla/5.0"}
+
     url = "https://www.bing.com/search?q=" + urllib.parse.quote(keyword)
     response = requests.get(url, headers=headers, timeout=10)
     soup = BeautifulSoup(response.text, "html.parser")
 
-    for a in soup.select("li.b_algo h2 a"):
+    # 新解析方式
+    for a in soup.find_all("a"):
         href = a.get("href")
+
         if not href:
             continue
+
         if href.startswith("http") and not is_bad_website(href):
-            websites.append(get_domain(href))
+            domain = get_domain(href)
+            websites.append(domain)
 
     clean_sites = []
     seen = set()
