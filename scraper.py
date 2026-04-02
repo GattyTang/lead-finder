@@ -48,7 +48,7 @@ def get_contact_pages(base_url):
 
 
 def search_company_websites(keyword):
-    print("Searching Google for:", keyword)
+    print("Searching Bing for:", keyword)
 
     websites = []
     try:
@@ -56,9 +56,9 @@ def search_company_websites(keyword):
         response = requests.get(url, timeout=5)
         soup = BeautifulSoup(response.text, "html.parser")
 
-        for link in soup.find_all("a", href=True):
-            href = link["href"]
-            if "http" in href and "bing" not in href:
+        for link in soup.find_all("a"):
+            href = link.get("href")
+            if href and href.startswith("http") and "bing.com" not in href:
                 websites.append(href)
 
     except:
