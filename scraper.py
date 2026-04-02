@@ -1,5 +1,20 @@
 import requests
 from bs4 import BeautifulSoup
+import re
+import urllib.parse
+
+
+def extract_real_url(bing_url):
+    try:
+        parsed = urllib.parse.parse_qs(urllib.parse.urlparse(bing_url).query)
+        if "u" in parsed:
+            real_url = parsed["u"][0]
+            if real_url.startswith("a1"):
+                real_url = real_url[2:]
+            return urllib.parse.unquote(real_url)
+    except:
+        pass
+    return None
 
 
 def search_company_websites(keyword):
@@ -11,24 +26,82 @@ def search_company_websites(keyword):
         url = "https://www.bing.com/search?q=" + keyword
         response = requests.get(url, headers=headers, timeout=10)
 
-        print("Status code:", response.status_code)
-        print("Page length:", len(response.text))
-
         soup = BeautifulSoup(response.text, "html.parser")
 
-        for li in soup.select("li.b_algo h2 a"):
-            href = li.get("href")
-            if href and href.startswith("http"):
+        for a in soup.select("li.b_algo h2 a"):
+            href = a.get("href")
+            if "bing.com/ck/a" in href:
+                real_url = extract_real_url(href)
+                if real_url:
+                    websites.append(real_url)
+            elif href.startswith("http"):
                 websites.append(href)
 
     except Exception as e:
         print("Search error:", e)
 
-    websites = list(dict.fromkeys(websites))[:10]
-    print("Websites found:", websites)
+    websites = list(dict.fromkeys(websites))[:5]
+    print("Real websites found:", websites)
     return websites
+
+
+def get_emails_from_page(url):
+    emails = []
+    try:
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        text = soup.get_text(" ", strip=True)
+        html = response.text
+
+        emails += re.findall(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text)
+        emails += re.findall(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", html)
+
+        for link in soup.find_all("a", href=True):
+            if "mailto:" in link["href"]:
+                emails.append(link["href"].replace("mailto:", "").strip())
+
+    except:
+        pass
+
+    return list(set(emails))
+
+
+def get_contact_pages(base_url):
+    pages = []
+    try:
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(base_url, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        for link in soup.find_all("a", href=True):
+            href = link["href"].lower()
+            if "contact" in href or "about" in href:
+                if href.startswith("http"):
+                    pages.append(href)
+                else:
+                    pages.append(base_url.rstrip("/") + "/" + href.lstrip("/"))
+    except:
+        pass
+
+    return list(set(pages))
 
 
 if __name__ == "__main__":
     keyword = "glass beads manufacturer"
-    search_company_websites(keyword)
+
+    websites = search_company_websites(keyword)
+
+    for site in websites:
+        print("\nChecking website:", site)
+
+        emails = get_emails_from_page(site)
+
+        contact_pages = get_contact_pages(site)
+        for page in contact_pages:
+            print("Checking contact page:", page)
+            emails += get_emails_from_page(page)
+
+        emails = list(set(emails))
+        print("Emails found:", emails)
