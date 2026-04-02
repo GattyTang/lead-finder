@@ -1,10 +1,14 @@
 KEYWORDS = [
-    "glass beads importer",
-    "reflective material distributor",
-    "road marking contractor company",
-    "traffic safety company",
-    "road marking paint supplier",
-    "thermoplastic road marking company"
+    "glass beads importer saudi arabia",
+    "glass beads distributor uae",
+    "road marking contractor saudi arabia",
+    "traffic safety company dubai",
+    "road marking paint supplier indonesia",
+    "thermoplastic road marking company malaysia",
+    "road marking contractor mexico",
+    "traffic safety company brazil",
+    "glass beads importer turkey",
+    "road marking company thailand"
 ]
 
 # 是否自动发邮件
