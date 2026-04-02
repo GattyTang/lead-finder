@@ -31,13 +31,23 @@ def extract_real_url(bing_url):
     return None
 
 
+def clean_email(email):
+    email = email.strip()
+    email = email.replace("mailto:", "")
+    email = urllib.parse.unquote(email)   # 关键：解码 %69 这种
+    email = email.replace(" ", "")
+    email = email.replace("(at)", "@").replace("[at]", "@").replace(" at ", "@")
+    email = email.replace("(dot)", ".").replace("[dot]", ".").replace(" dot ", ".")
+    return email
+
+
 def search_company_websites(keyword):
-    print("Searching Bing for:", keyword)
+    print("\nSearching Bing for:", keyword)
 
     websites = []
     try:
         headers = {"User-Agent": "Mozilla/5.0"}
-        url = "https://www.bing.com/search?q=" + keyword
+        url = "https://www.bing.com/search?q=" + urllib.parse.quote(keyword)
         response = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, "html.parser")
 
@@ -56,9 +66,19 @@ def search_company_websites(keyword):
     except Exception as e:
         print("Search error:", e)
 
-    websites = list(dict.fromkeys(websites))[:5]
-    print("Real websites found:", websites)
-    return websites
+    # 去重 + 跳过 pdf
+    clean_sites = []
+    seen = set()
+    for site in websites:
+        if site.lower().endswith(".pdf"):
+            continue
+        if site not in seen:
+            seen.add(site)
+            clean_sites.append(site)
+
+    clean_sites = clean_sites[:5]
+    print("Websites found:", clean_sites)
+    return clean_sites
 
 
 def get_emails_from_page(url):
@@ -71,17 +91,38 @@ def get_emails_from_page(url):
         text = soup.get_text(" ", strip=True)
         html = response.text
 
-        emails += re.findall(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text)
-        emails += re.findall(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", html)
+        # 先把整页内容做一次 URL 解码
+        text = urllib.parse.unquote(text)
+        html = urllib.parse.unquote(html)
 
+        # 普通邮箱
+        emails += re.findall(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}", text)
+        emails += re.findall(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}", html)
+
+        # mailto 邮箱
         for link in soup.find_all("a", href=True):
-            if "mailto:" in link["href"]:
-                emails.append(link["href"].replace("mailto:", "").strip())
+            href = link["href"]
+            if "mailto:" in href:
+                emails.append(href)
+
+        # 处理 at / dot 混淆写法
+        text_fixed = text.replace(" [at] ", "@").replace("(at)", "@").replace(" at ", "@")
+        text_fixed = text_fixed.replace(" [dot] ", ".").replace("(dot)", ".").replace(" dot ", ".")
+        emails += re.findall(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}", text_fixed)
 
     except:
         pass
 
-    return list(set(emails))
+    # 清洗 + 去重
+    cleaned = []
+    seen = set()
+    for email in emails:
+        e = clean_email(email)
+        if "@" in e and "." in e and e not in seen:
+            seen.add(e)
+            cleaned.append(e)
+
+    return cleaned
 
 
 def get_contact_pages(base_url):
@@ -92,8 +133,10 @@ def get_contact_pages(base_url):
         soup = BeautifulSoup(response.text, "html.parser")
 
         for link in soup.find_all("a", href=True):
-            href = link["href"].lower()
-            if "contact" in href or "about" in href:
+            href = link["href"]
+            href_lower = href.lower()
+
+            if "contact" in href_lower or "about" in href_lower:
                 if href.startswith("http"):
                     pages.append(href)
                 else:
@@ -116,35 +159,43 @@ def save_results_to_csv(results, filename="leads.csv"):
 
 
 if __name__ == "__main__":
-    keyword = "glass beads manufacturer"
+    keywords = [
+        "glass beads manufacturer",
+        "glass beads supplier",
+        "road marking glass beads",
+        "reflective glass beads",
+        "glass microspheres supplier"
+    ]
 
-    websites = search_company_websites(keyword)
     all_results = []
 
-    for site in websites:
-        print("\nChecking website:", site)
+    for keyword in keywords:
+        websites = search_company_websites(keyword)
 
-        # 先查首页
-        emails = get_emails_from_page(site)
-        for email in emails:
-            all_results.append({
-                "website": site,
-                "email": email,
-                "contact_page": site
-            })
+        for site in websites:
+            print("\nChecking website:", site)
 
-        # 再查 contact/about 页面
-        contact_pages = get_contact_pages(site)
-        for page in contact_pages:
-            print("Checking contact page:", page)
-            page_emails = get_emails_from_page(page)
-
-            for email in page_emails:
+            # 首页邮箱
+            emails = get_emails_from_page(site)
+            for email in emails:
                 all_results.append({
                     "website": site,
                     "email": email,
-                    "contact_page": page
+                    "contact_page": site
                 })
+
+            # Contact / About 页面邮箱
+            contact_pages = get_contact_pages(site)
+            for page in contact_pages:
+                print("Checking contact page:", page)
+                page_emails = get_emails_from_page(page)
+
+                for email in page_emails:
+                    all_results.append({
+                        "website": site,
+                        "email": email,
+                        "contact_page": page
+                    })
 
     # 去重
     unique_results = []
