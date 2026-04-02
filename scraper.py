@@ -6,19 +6,23 @@ import re
 def get_emails_from_page(url):
     emails = []
     try:
-        response = requests.get(url, timeout=5)
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, "html.parser")
 
         text = soup.get_text(" ", strip=True)
         html = response.text
 
+        # 普通邮箱
         emails += re.findall(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text)
         emails += re.findall(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", html)
 
+        # mailto 邮箱
         for link in soup.find_all("a", href=True):
             if "mailto:" in link["href"]:
                 emails.append(link["href"].replace("mailto:", "").strip())
 
+        # 处理 [at] 写法
         text_fixed = text.replace(" [at] ", "@").replace("(at)", "@").replace(" at ", "@")
         emails += re.findall(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text_fixed)
 
@@ -31,7 +35,8 @@ def get_emails_from_page(url):
 def get_contact_pages(base_url):
     pages = []
     try:
-        response = requests.get(base_url, timeout=5)
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(base_url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, "html.parser")
 
         for link in soup.find_all("a", href=True):
@@ -52,19 +57,22 @@ def search_company_websites(keyword):
 
     websites = []
     try:
+        headers = {"User-Agent": "Mozilla/5.0"}
         url = "https://www.bing.com/search?q=" + keyword
-        response = requests.get(url, timeout=5)
+        response = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, "html.parser")
 
-        for link in soup.find_all("a"):
-            href = link.get("href")
-            if href and href.startswith("http") and "bing.com" not in href:
+        for link in soup.find_all("a", href=True):
+            href = link["href"]
+            if href.startswith("http") and "bing.com" not in href:
                 websites.append(href)
 
-    except:
-        pass
+    except Exception as e:
+        print("Search error:", e)
 
-    return list(set(websites))[:5]
+    websites = list(set(websites))[:5]
+    print("Websites found:", websites)
+    return websites
 
 
 if __name__ == "__main__":
