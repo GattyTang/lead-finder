@@ -1,0 +1,123 @@
+# Lead Finder keyword library v1.2
+# One keyword per line
+# Focus: glass beads / road marking / reflective traffic materials
+# You can keep the best-performing ones and keep deleting weak terms later.
+
+# ===== Middle East =====
+glass beads importer saudi arabia
+road marking glass beads importer saudi arabia
+road marking materials distributor saudi arabia
+thermoplastic road marking contractor saudi arabia
+traffic safety supplier saudi arabia
+highway marking materials buyer saudi arabia
+road marking company riyadh
+glass beads distributor uae
+road marking glass beads buyer uae
+traffic safety company dubai
+road marking contractor dubai
+thermoplastic road marking supplier uae
+highway safety materials importer abu dhabi
+road paint contractor sharjah
+road marking materials importer qatar
+traffic safety supplier qatar
+road marking contractor doha
+glass beads importer oman
+road marking company oman
+traffic safety materials distributor kuwait
+road marking contractor kuwait
+highway marking materials buyer bahrain
+
+# ===== Southeast Asia =====
+road marking paint supplier indonesia
+glass beads importer indonesia
+road marking contractor jakarta
+traffic safety company indonesia
+thermoplastic road marking company malaysia
+glass beads distributor malaysia
+road marking contractor kuala lumpur
+traffic safety supplier malaysia
+road marking company thailand
+glass beads importer thailand
+road marking contractor bangkok
+traffic safety materials supplier thailand
+glass beads distributor vietnam
+road marking contractor vietnam
+traffic safety company ho chi minh
+road marking supplier philippines
+glass beads importer philippines
+traffic safety company manila
+road safety materials buyer singapore
+road marking contractor singapore
+
+# ===== South Asia =====
+glass beads importer india
+road marking contractor india
+traffic safety materials distributor india
+thermoplastic road marking supplier india
+road marking company bangladesh
+traffic safety contractor bangladesh
+road marking materials importer sri lanka
+
+# ===== Africa =====
+glass beads importer egypt
+road marking contractor egypt
+traffic safety materials distributor egypt
+glass beads buyer morocco
+road marking company morocco
+road safety supplier south africa
+glass beads importer south africa
+road marking contractor johannesburg
+traffic safety company kenya
+road marking supplier kenya
+road safety materials buyer nigeria
+glass beads distributor nigeria
+road marking contractor nigeria
+
+# ===== Latin America =====
+road marking contractor mexico
+glass beads importer mexico
+traffic safety company mexico
+road marking supplier guadalajara
+glass beads distributor brazil
+traffic safety company brazil
+road marking contractor brazil
+thermoplastic road marking supplier brazil
+glass beads importer chile
+road marking contractor chile
+traffic safety company peru
+road marking supplier peru
+glass beads importer colombia
+road marking company colombia
+traffic safety distributor argentina
+road marking contractor argentina
+
+# ===== Europe / Turkey =====
+glass beads importer turkey
+road marking contractor turkey
+traffic safety materials distributor turkey
+road marking supplier istanbul
+glass beads buyer poland
+road marking contractor romania
+traffic safety supplier greece
+
+# ===== Australia / New Zealand =====
+road marking contractor australia
+traffic safety supplier australia
+glass beads importer australia
+road marking company sydney
+road marking supplier new zealand
+traffic safety company new zealand
+
+# ===== Broader buyer-intent terms =====
+road marking materials importer
+road marking materials distributor
+road marking materials wholesaler
+road marking paint buyer
+thermoplastic road marking buyer
+highway safety materials importer
+traffic safety materials distributor
+reflective glass beads importer
+reflective glass beads distributor
+glass beads for road marking buyer
+intermix glass beads importer
+drop on glass beads importer
